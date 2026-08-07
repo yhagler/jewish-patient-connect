@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { getBrowserClient } from '@/lib/supabase/client'
+import posthog from 'posthog-js'
 import MagicLinkLogin from '@/components/auth/MagicLinkLogin'
 import ResponseCard from '@/components/responses/ResponseCard'
 import {
@@ -26,11 +27,24 @@ export default function InboxPage() {
 
   useEffect(() => {
     const supabase = getBrowserClient()
+
+    function identifyInboxUser(activeSession: Session) {
+      posthog.identify(activeSession.user.id, {
+        email: activeSession.user.email,
+        role: 'inbox_user',
+      })
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
+      if (data.session) identifyInboxUser(data.session)
       setReady(true)
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s))
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s)
+      if (event === 'SIGNED_IN' && s) identifyInboxUser(s)
+      if (event === 'SIGNED_OUT') posthog.reset()
+    })
     return () => sub.subscription.unsubscribe()
   }, [])
 

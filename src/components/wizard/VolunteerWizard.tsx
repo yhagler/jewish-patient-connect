@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import posthog from 'posthog-js'
 import Wizard, { WizardLoading, type Answers, type Step } from './Wizard'
 import { buildContact } from './contactSteps'
 import { submitRequest } from '@/lib/submitRequest'
@@ -99,6 +100,9 @@ export default function VolunteerWizard({ preselect, onClose }: Props) {
     if (Object.keys(extra).length > 0) volunteer.extra = extra
 
     await submitRequest('Volunteer', contact, volunteer, str('company'), str('turnstileToken'))
+    posthog.capture('volunteer_signup_submitted', {
+      ways_to_help: arr('waysToHelp'),
+    })
   }
 
   if (!form) return <WizardLoading onClose={onClose} />

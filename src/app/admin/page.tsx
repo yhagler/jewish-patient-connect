@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { getBrowserClient } from '@/lib/supabase/client'
+import posthog from 'posthog-js'
 import type {
   EnrichedSubmission,
   ResourceRow,
@@ -24,11 +25,24 @@ export default function AdminPage() {
 
   useEffect(() => {
     const supabase = getBrowserClient()
+
+    function identifyAdmin(activeSession: Session) {
+      posthog.identify(activeSession.user.id, {
+        email: activeSession.user.email,
+        role: 'admin',
+      })
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
+      if (data.session) identifyAdmin(data.session)
       setReady(true)
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s))
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s)
+      if (event === 'SIGNED_IN' && s) identifyAdmin(s)
+      if (event === 'SIGNED_OUT') posthog.reset()
+    })
     return () => sub.subscription.unsubscribe()
   }, [])
 

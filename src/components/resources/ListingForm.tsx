@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import posthog from 'posthog-js'
 import { fieldIsVisible, isCategorySyncEligible, selectValues, type CategoryConfig, type CategoryField } from '@/lib/categories'
 import { formatPhone, normalizeUrl } from '@/lib/validation'
 import type { DirectoryResource, ResourceSubmission } from '@/types'
@@ -210,6 +211,9 @@ export default function ListingForm({ category, mode, existing, onUp, onSubmitte
         setErrors(body.errors ?? ['Something went wrong. Please try again.'])
         return
       }
+      posthog.capture(mode === 'edit' ? 'listing_submission_updated' : 'listing_submission_created', {
+        category_id: category.id,
+      })
       setDone(true)
     } catch {
       setErrors(['Network error. Please check your connection and try again.'])

@@ -1,6 +1,7 @@
 'use client'
 
 import Wizard, { WizardLoading, type Answers, type Step } from './Wizard'
+import posthog from 'posthog-js'
 import { buildContact } from './contactSteps'
 import { submitRequest } from '@/lib/submitRequest'
 import { useForm } from '@/lib/useForms'
@@ -51,6 +52,7 @@ export default function GenericFormWizard({ formId, onClose }: Props) {
       typeof a.turnstileToken === 'string' ? a.turnstileToken : '',
       formId,
     )
+    posthog.capture('custom_form_submitted', { form_id: formId })
   }
 
   if (!form) return <WizardLoading onClose={onClose} />

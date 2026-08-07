@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import posthog from 'posthog-js'
 import Honeypot from './Honeypot'
 import TurnstileWidget from './TurnstileWidget'
 import { submitRequest } from '@/lib/submitRequest'
@@ -40,6 +41,7 @@ export default function FeedbackForm({ heading, successMessage, variant = 'modal
         unitFloorRoom: '',
       }
       await submitRequest('Feedback', contact, { message: message.trim() }, honeypot, turnstileToken)
+      posthog.capture('feedback_submitted', { variant })
       setStatus('success')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -121,7 +123,7 @@ export default function FeedbackForm({ heading, successMessage, variant = 'modal
 
           <div>
             <label htmlFor="feedback-email" className="block text-sm font-medium text-slate-700">
-              Email <span className="font-normal text-slate-400">(optional, if you'd like a reply)</span>
+              Email <span className="font-normal text-slate-400">(optional, if you&apos;d like a reply)</span>
             </label>
             <input
               id="feedback-email"

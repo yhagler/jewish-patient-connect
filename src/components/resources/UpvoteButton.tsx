@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import posthog from 'posthog-js'
 
 const TOKEN_KEY = 'jpc_voter_token'
 const VOTED_KEY = 'jpc_voted'
@@ -79,6 +80,10 @@ export default function UpvoteButton({
         applyCount(body.count)
         setVoted(body.voted)
         rememberVote(resourceId, body.voted)
+        posthog.capture('listing_vote_toggled', {
+          listing_id: resourceId,
+          voted: body.voted,
+        })
       } else {
         setVoted(prevVoted)
         applyCount(prevCount)

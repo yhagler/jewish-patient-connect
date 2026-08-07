@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import posthog from 'posthog-js'
 
 // Shared magic-link sign-in form — used by /admin and /inbox, which check
 // different email allowlists (ADMIN_EMAILS vs INBOX_EMAILS) but share the same
@@ -35,6 +36,9 @@ export default function MagicLinkLogin({ requestLinkUrl, emailLabel, sentMessage
       })
       const body = await res.json()
       if (!res.ok || !body.ok) throw new Error(body.error || 'Could not send the sign-in link.')
+      posthog.capture('magic_link_requested', {
+        destination: requestLinkUrl.includes('/admin/') ? 'admin' : 'inbox',
+      })
       setSent(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not send the sign-in link.')

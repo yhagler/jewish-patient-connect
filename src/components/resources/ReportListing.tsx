@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import posthog from 'posthog-js'
 import type { DirectoryResource } from '@/types'
 import UpButton from '@/components/UpButton'
 import Honeypot from '@/components/Honeypot'
@@ -55,6 +56,10 @@ export default function ReportListing({ listing, upLabel, onUp, onSubmitted, pre
         setError((body.errors ?? ['Something went wrong.']).join(' '))
         return
       }
+      posthog.capture('listing_problem_reported', {
+        listing_id: listing.id,
+        category_id: listing.category,
+      })
       setDone(true)
     } catch {
       setError('Network error. Please check your connection and try again.')

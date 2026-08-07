@@ -1,6 +1,7 @@
 'use client'
 
 import Wizard, { WizardLoading, type Answers, type Step } from './Wizard'
+import posthog from 'posthog-js'
 import { buildContact } from './contactSteps'
 import { submitRequest } from '@/lib/submitRequest'
 import { useForm } from '@/lib/useForms'
@@ -104,6 +105,9 @@ export default function SupportWizard({ preselect, onClose }: Props) {
       typeof a.company === 'string' ? a.company : '',
       typeof a.turnstileToken === 'string' ? a.turnstileToken : '',
     )
+    posthog.capture('support_request_submitted', {
+      need_types: needs,
+    })
   }
 
   if (!form) return <WizardLoading onClose={onClose} />
